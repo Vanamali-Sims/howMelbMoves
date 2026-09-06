@@ -109,9 +109,11 @@ howMelbMoves/
 
 ## Data sources
 
-To be populated in `config/sources.yml` after each source is confirmed against
-its live API. Every source starts with `verified: false`. No endpoints or
-dataset ids are recorded yet.
+Verified against live APIs on 2026-09-06. Catalogue, ids, columns, and
+discrepancies are in `docs/source_verification.md` and `docs/data_dictionary.md`.
+`config/sources.yml` holds the confirmed catalogue. The hourly pedestrian
+table currently starts at 2024-09-06, not 2009 — see open questions in
+`docs/decisions.md`.
 
 ## Results
 

@@ -1,3 +1,152 @@
-# Populated in a later step after live API verification.
-# Do not add endpoints, dataset ids, or column names until they are confirmed.
-sources: []
+# Populated from live API responses on 2026-09-06.
+# See docs/source_verification.md. Do not add unverified endpoints.
+sources:
+  - name: pedestrian_hourly_counts
+    base_url: https://data.melbourne.vic.gov.au
+    dataset_id: pedestrian-counting-system-monthly-counts-per-hour
+    expected_columns:
+      - id
+      - location_id
+      - sensing_date
+      - hourday
+      - direction_1
+      - direction_2
+      - pedestriancount
+      - sensor_name
+      - location
+    # Live min/max sensing_date, not the portal's "since 2009" claim.
+    date_range:
+      start: 2024-09-06
+      end: 2026-09-05
+    verified: true
+
+  - name: pedestrian_sensor_locations
+    base_url: https://data.melbourne.vic.gov.au
+    dataset_id: pedestrian-counting-system-sensor-locations
+    expected_columns:
+      - location_id
+      - sensor_description
+      - sensor_name
+      - installation_date
+      - note
+      - location_type
+      - status
+      - direction_1
+      - direction_2
+      - latitude
+      - longitude
+      - location
+    # Extrema of installation_date among rows that have one (131 of 134).
+    date_range:
+      start: 2009-01-20
+      end: 2025-10-18
+    verified: true
+
+  - name: clue_establishments_address_industry
+    base_url: https://data.melbourne.vic.gov.au
+    dataset_id: business-establishments-with-address-and-industry-classification
+    expected_columns:
+      - census_year
+      - block_id
+      - property_id
+      - base_property_id
+      - clue_small_area
+      - trading_name
+      - business_address
+      - industry_anzsic4_code
+      - industry_anzsic4_description
+      - longitude
+      - latitude
+      - point
+    date_range:
+      start: 2002-01-01
+      end: 2024-01-01
+    verified: true
+
+  - name: clue_establishments_per_block_anzsic
+    base_url: https://data.melbourne.vic.gov.au
+    dataset_id: business-establishments-per-block-by-anzsic
+    expected_columns:
+      - census_year
+      - block_id
+      - clue_small_area
+      - accommodation_and_food_services
+      - administrative_and_support_services
+      - agriculture_forestry_and_fishing
+      - arts_and_recreation_services
+      - construction
+      - education_and_training
+      - electricity_gas_water_and_waste_services
+      - financial_and_insurance_services
+      - health_care_and_social_assistance
+      - information_media_and_telecommunications
+      - manufacturing
+      - mining
+      - other_services
+      - professional_scientific_and_technical_services
+      - public_administration_and_safety
+      - rental_hiring_and_real_estate_services
+      - retail_trade
+      - transport_postal_and_warehousing
+      - wholesale_trade
+      - total_establishments_in_block
+    date_range:
+      start: 2002-01-01
+      end: 2024-01-01
+    verified: true
+
+  - name: clue_jobs_per_block_anzsic
+    base_url: https://data.melbourne.vic.gov.au
+    dataset_id: employment-by-block-by-anzsic
+    expected_columns:
+      - census_year
+      - block_id
+      - clue_small_area
+      - accommodation_and_food_services
+      - administrative_and_support_services
+      - agriculture_forestry_and_fishing
+      - arts_and_recreation_services
+      - construction
+      - education_and_training
+      - electricity_gas_water_and_waste_services
+      - financial_and_insurance_services
+      - health_care_and_social_assistance
+      - information_media_and_telecommunications
+      - manufacturing
+      - mining
+      - other_services
+      - professional_scientific_and_technical_services
+      - public_administration_and_safety
+      - rental_hiring_and_real_estate_services
+      - retail_trade
+      - transport_postal_and_warehousing
+      - wholesale_trade
+      - total_jobs_in_block
+    date_range:
+      start: 2002-01-01
+      end: 2024-01-01
+    verified: true
+
+  - name: open_meteo_archive
+    base_url: https://archive-api.open-meteo.com
+    dataset_id: v1/archive
+    expected_columns:
+      - time
+      - temperature_2m
+      - precipitation
+      - rain
+      - wind_speed_10m
+      - cloud_cover
+    # Allowed range from the API 400 body on 2026-09-06. End will move.
+    date_range:
+      start: 1940-01-01
+      end: 2026-09-06
+    verified: true
+
+  - name: vic_public_holidays
+    base_url: https://github.com/vacanza/holidays
+    dataset_id: AU/VIC
+    expected_columns:
+      - date
+      - name
+    verified: true

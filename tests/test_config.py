@@ -112,6 +112,13 @@ def test_rejects_unknown_fields(tmp_path: Path) -> None:
 def test_repo_sources_yml_loads() -> None:
     config = load_sources_config()
     assert isinstance(config, SourcesConfig)
-    assert config.sources == []
     assert default_sources_path() == project_root() / "config" / "sources.yml"
     assert default_sources_path().is_file()
+    assert config.sources
+    names = {source.name for source in config.sources}
+    assert "pedestrian_hourly_counts" in names
+    for source in config.sources:
+        assert source.dataset_id
+        assert source.base_url
+        if source.verified:
+            assert source.expected_columns
