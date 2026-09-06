@@ -1,0 +1,8 @@
+melbourne_footfall:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: ../data/warehouse/melbourne_footfall.duckdb
+      schema: main
+      threads: 4

@@ -1,0 +1,38 @@
+# Virtual environments
+.venv/
+venv/
+.env
+docs/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+
+# Data — never commit raw, staged, warehouse, or DuckDB files
+data/raw/*
+!data/raw/.gitkeep
+data/staged/*
+!data/staged/.gitkeep
+data/warehouse/*
+!data/warehouse/.gitkeep
+*.parquet
+*.duckdb
+*.duckdb.wal
+
+# dbt artefacts and local profile (copy from profiles.yml.example)
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+dbt/profiles.yml
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
