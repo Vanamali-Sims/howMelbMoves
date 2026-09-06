@@ -1,0 +1,24 @@
+[
+  {
+    "id": 52041,
+    "location_id": 52,
+    "sensing_date": "2026-04-05",
+    "hourday": 2,
+    "direction_1": 1,
+    "direction_2": 1,
+    "pedestriancount": 2,
+    "sensor_name": "Eli263_T",
+    "location": {"lon": 144.9619401, "lat": -37.81252157}
+  },
+  {
+    "id": 52042,
+    "location_id": 52,
+    "sensing_date": "2026-10-04",
+    "hourday": 2,
+    "direction_1": 1,
+    "direction_2": 1,
+    "pedestriancount": 2,
+    "sensor_name": "Eli263_T",
+    "location": {"lon": 144.9619401, "lat": -37.81252157}
+  }
+]

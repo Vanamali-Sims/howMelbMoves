@@ -59,6 +59,19 @@ def default_sources_path() -> Path:
     return project_root() / "config" / "sources.yml"
 
 
+def get_source(name: str, config: SourcesConfig | None = None) -> Source:
+    """Return a named source. Raises if missing or not verified."""
+    cfg = config if config is not None else load_sources_config()
+    for source in cfg.sources:
+        if source.name == name:
+            if not source.verified:
+                msg = f"source {name!r} is not verified"
+                raise ValueError(msg)
+            return source
+    msg = f"unknown source {name!r}"
+    raise KeyError(msg)
+
+
 def load_sources_config(path: Path | None = None) -> SourcesConfig:
     """Read YAML and validate. An empty or missing file yields no sources."""
     config_path = path if path is not None else default_sources_path()

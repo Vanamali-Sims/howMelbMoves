@@ -1,0 +1,8 @@
+# Schema: event_id, event_name, venue, start_date (ISO), end_date (ISO, inclusive), notes
+# Hand-maintained major events. Add rows as needed.
+event_id,event_name,venue,start_date,end_date,notes
+gp-2024,Australian Grand Prix,Albert Park,2024-03-21,2024-03-24,Formula 1 Rolex Australian Grand Prix
+moomba-2024,Moomba Festival,Yarra / Alexandra Gardens,2024-03-08,2024-03-11,Labour Day long weekend
+afl-gf-2024,AFL Grand Final,MCG,2024-09-28,2024-09-28,Brisbane vs Sydney
+boxing-day-test-2024,Boxing Day Test,MCG,2024-12-26,2024-12-30,Australia vs India 2024-25
+nye-2024,New Year's Eve,Melbourne CBD,2024-12-31,2025-01-01,NYE

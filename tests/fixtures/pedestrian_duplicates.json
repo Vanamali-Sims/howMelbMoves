@@ -1,0 +1,24 @@
+[
+  {
+    "id": 67001001,
+    "location_id": 67,
+    "sensing_date": "2026-08-01",
+    "hourday": 9,
+    "direction_1": 10,
+    "direction_2": 12,
+    "pedestriancount": 22,
+    "sensor_name": "FLDegS_T",
+    "location": {"lon": 144.96562569, "lat": -37.81688755}
+  },
+  {
+    "id": 67001002,
+    "location_id": 67,
+    "sensing_date": "2026-08-01",
+    "hourday": 9,
+    "direction_1": 11,
+    "direction_2": 12,
+    "pedestriancount": 23,
+    "sensor_name": "FLDegS_T",
+    "location": {"lon": 144.96562569, "lat": -37.81688755}
+  }
+]

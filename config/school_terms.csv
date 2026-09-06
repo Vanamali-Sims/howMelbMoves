@@ -1,0 +1,7 @@
+# Schema: year, term (1-4), start_date (ISO), end_date (ISO, inclusive), jurisdiction, source_note
+# No school-term API was verified. Hand-maintained. Confirm against DET Victoria before relying on dates.
+year,term,start_date,end_date,jurisdiction,source_note
+2024,1,2024-01-29,2024-03-28,VIC,hand-maintained example — confirm against DET
+2024,2,2024-04-15,2024-06-28,VIC,hand-maintained example — confirm against DET
+2024,3,2024-07-15,2024-09-20,VIC,hand-maintained example — confirm against DET
+2024,4,2024-10-07,2024-12-20,VIC,hand-maintained example — confirm against DET

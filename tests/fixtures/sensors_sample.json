@@ -1,0 +1,30 @@
+[
+  {
+    "location_id": 3,
+    "sensor_description": "Melbourne Central",
+    "sensor_name": "Swa295_T",
+    "installation_date": "2009-03-25",
+    "note": null,
+    "location_type": "Outdoor",
+    "status": "A",
+    "direction_1": "North",
+    "direction_2": "South",
+    "latitude": -37.81101524,
+    "longitude": 144.96429485,
+    "location": {"lon": 144.96429485, "lat": -37.81101524}
+  },
+  {
+    "location_id": 67,
+    "sensor_description": "Flinders Ln -Degraves St (South)",
+    "sensor_name": "FLDegS_T",
+    "installation_date": "2020-06-03",
+    "note": null,
+    "location_type": "Outdoor",
+    "status": "A",
+    "direction_1": "East",
+    "direction_2": "West",
+    "latitude": -37.81688755,
+    "longitude": 144.96562569,
+    "location": {"lon": 144.96562569, "lat": -37.81688755}
+  }
+]
