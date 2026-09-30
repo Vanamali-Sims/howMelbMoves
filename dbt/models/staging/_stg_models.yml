@@ -1,0 +1,58 @@
+version: 2
+
+models:
+  - name: stg_pedestrian_counts
+    description: Hourly counts at location grain. Direction columns are counts, not compass labels.
+    columns:
+      - name: location_id
+        data_tests: [not_null]
+      - name: sensing_date
+        data_tests: [not_null]
+      - name: hourday
+        data_tests: [not_null]
+      - name: pedestriancount
+        data_tests: [not_null]
+      - name: observed_at
+        description: Australia/Melbourne timestamp. Null on an ambiguous April 2:00 or a nonexistent October 2:00 (ADR-003).
+
+  - name: stg_sensor_locations
+    description: One row per location_id in the latest sensor snapshot.
+    columns:
+      - name: location_id
+        data_tests: [not_null, unique]
+      - name: direction_1_label
+        description: Compass word from the sensor snapshot, not a count.
+
+  - name: stg_weather_hourly
+    description: One citywide weather row per Melbourne wall-clock hour.
+    columns:
+      - name: sensing_date
+        data_tests: [not_null]
+      - name: hourday
+        data_tests: [not_null]
+
+  - name: stg_public_holidays
+    description: VIC public holidays.
+    columns:
+      - name: holiday_date
+        data_tests: [not_null, unique]
+      - name: holiday_name
+        data_tests: [not_null]
+
+  - name: stg_school_terms
+    description: Hand-maintained school terms. Not a verified API (ADR-006).
+    columns:
+      - name: start_date
+        data_tests: [not_null]
+      - name: end_date
+        data_tests: [not_null]
+
+  - name: stg_major_events
+    description: Hand-maintained events. Not a verified API (ADR-006).
+    columns:
+      - name: event_id
+        data_tests: [not_null, unique]
+      - name: start_date
+        data_tests: [not_null]
+      - name: end_date
+        data_tests: [not_null]

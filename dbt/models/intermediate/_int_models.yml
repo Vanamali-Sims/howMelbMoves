@@ -1,0 +1,29 @@
+version: 2
+
+models:
+  - name: int_location_hour
+    description: >
+      Counts joined to the sensor snapshot, citywide weather, and the calendar
+      at (location_id, sensing_date, hourday). Precinct is not assigned (ADR-009).
+    columns:
+      - name: location_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_sensor_locations')
+                field: location_id
+      - name: sensing_date
+        data_tests: [not_null]
+      - name: hourday
+        data_tests: [not_null]
+      - name: pedestriancount
+        data_tests: [not_null]
+      - name: is_public_holiday
+        data_tests: [not_null]
+      - name: is_school_term
+        description: True when the hand-maintained school-term CSV covers the day (ADR-006).
+        data_tests: [not_null]
+      - name: is_event_day
+        description: True when the hand-maintained events CSV covers the day (ADR-006).
+        data_tests: [not_null]

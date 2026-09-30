@@ -1,7 +1,7 @@
 select
     time as observed_at,
     cast(timezone('Australia/Melbourne', time) as date) as sensing_date,
-    extract('hour' from timezone('Australia/Melbourne', time)) as hourday,
+    cast(extract('hour' from timezone('Australia/Melbourne', time)) as integer) as hourday,
     temperature_2m,
     precipitation,
     rain,
