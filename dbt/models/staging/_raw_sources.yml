@@ -28,3 +28,7 @@ sources:
         description: Hand-maintained major events (ADR-006).
         meta:
           external_location: "read_parquet('{{ var('raw_root') }}/major_events/**/*.parquet', hive_partitioning=false, union_by_name=true)"
+      - name: clue_establishments_address_industry
+        description: CLUE establishments with address. Used for block centroids (census 2024 ingest).
+        meta:
+          external_location: "read_parquet('{{ var('raw_root') }}/clue_establishments_address_industry/**/*.parquet', hive_partitioning=false, union_by_name=true)"

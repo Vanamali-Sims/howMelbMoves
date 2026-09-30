@@ -4,7 +4,8 @@ models:
   - name: int_location_hour
     description: >
       Counts joined to the sensor snapshot, citywide weather, and the calendar
-      at (location_id, sensing_date, hourday). Precinct is not assigned (ADR-009).
+      at (location_id, sensing_date, hourday). Precinct comes from
+      int_sensor_block_map (ADR-010), not this model.
     columns:
       - name: location_id
         data_tests:
@@ -26,4 +27,16 @@ models:
         data_tests: [not_null]
       - name: is_event_day
         description: True when the hand-maintained events CSV covers the day (ADR-006).
+        data_tests: [not_null]
+
+  - name: int_sensor_block_map
+    description: >
+      Nearest 2024 CLUE block centroid per sensor (squared degree distance).
+      Not publisher-verified (ADR-010).
+    columns:
+      - name: location_id
+        data_tests: [not_null, unique]
+      - name: block_id
+        data_tests: [not_null]
+      - name: clue_small_area
         data_tests: [not_null]

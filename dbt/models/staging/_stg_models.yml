@@ -56,3 +56,15 @@ models:
         data_tests: [not_null]
       - name: end_date
         data_tests: [not_null]
+
+  - name: stg_clue_block_centroids
+    description: Mean address coordinates per CLUE block (2024 census ingest). ADR-010.
+    columns:
+      - name: block_id
+        data_tests: [not_null]
+      - name: clue_small_area
+        data_tests: [not_null]
+      - name: latitude
+        data_tests: [not_null]
+      - name: longitude
+        data_tests: [not_null]
