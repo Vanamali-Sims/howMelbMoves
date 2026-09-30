@@ -5,8 +5,7 @@ precinct recovered after COVID-19 lockdowns.
 
 This repository is the reproducible pipeline behind that forecast: City of
 Melbourne open data joined to weather, calendar, and land-use data, a baseline
-then a LightGBM model, and a Tableau Public dashboard. The current checkout is
-tooling and skeleton only — no extracts, no warehouse tables, no metrics.
+then a LightGBM model, and a Tableau Public dashboard.
 
 ## Problem
 
@@ -82,11 +81,18 @@ make test
 make lint
 ```
 
-`make build` copies `dbt/profiles.yml` if needed and runs dbt through
-`mart_precinct_hour` (location-hour join, then CLUE precinct rollup). Run it
-from the repo root so `data/raw` resolves.
-`make features`, `make train`, `make evaluate`, and `make export` are still
-stubs.
+Smoke run from the repo root (two days of counts plus warehouse build):
+
+```bash
+make ingest
+make pipeline
+```
+
+`make pipeline` runs `build`, `features`, `train`, `evaluate`, and `export`.
+For the full verified pedestrian date range, run `make ingest-full` first (slow).
+
+Outputs land under `data/staged/` (features, predictions, metrics, Tableau
+Parquet). DuckDB lives at `data/warehouse/melbourne_footfall.duckdb`.
 
 ## Repository layout
 
@@ -112,9 +118,13 @@ table currently starts at 2024-09-06, not 2009 — see open questions in
 
 ## Results
 
-Not yet available. This checkout has no ingestion, no models, and no scores.
+After `make pipeline`, read `data/staged/metrics.json` for rolling-origin MASE
+and publish `data/staged/export/tableau_precinct_hour.parquet` to Tableau
+Public. Pre-lockdown recovery ratios are not computed until that baseline
+period is verified.
 
 ## Limitations
 
-To be documented after source verification and the first rolling-origin
-evaluation. Do not treat any unpublished figure as a result.
+Documented in `docs/decisions.md` and `docs/data_quality_notes.md`. Do not
+treat figures as final until evaluated on a history longer than the smoke
+extract.

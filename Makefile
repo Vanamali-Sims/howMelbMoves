@@ -1,4 +1,4 @@
-.PHONY: setup ingest build features train evaluate export test lint clean
+.PHONY: setup ingest ingest-full build features train evaluate export pipeline test lint clean
 
 setup:
 	uv sync
@@ -7,21 +7,26 @@ setup:
 ingest:
 	uv run python -m melbourne_footfall.ingest --start 2026-08-01 --end 2026-08-02
 
+ingest-full:
+	uv run python -m melbourne_footfall.ingest --start 2024-09-06 --end 2026-09-05
+
 build:
 	uv run python -c "from pathlib import Path; src, dst = Path('dbt/profiles.yml.example'), Path('dbt/profiles.yml'); dst.write_text(src.read_text(encoding='utf-8'), encoding='utf-8') if not dst.exists() else None"
 	uv run dbt build --project-dir dbt --profiles-dir dbt
 
 features:
-	@echo not implemented: features
+	uv run python -m melbourne_footfall.features
 
 train:
-	@echo not implemented: train
+	uv run python -m melbourne_footfall.models.train
 
 evaluate:
-	@echo not implemented: evaluate
+	uv run python -m melbourne_footfall.models.evaluate
 
 export:
-	@echo not implemented: export
+	uv run python -m melbourne_footfall.export
+
+pipeline: build features train evaluate export
 
 test:
 	uv run pytest
