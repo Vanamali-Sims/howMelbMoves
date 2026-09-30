@@ -1,0 +1,30 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Immutable Parquet written by Python ingest under data/raw.
+    tables:
+      - name: pedestrian_hourly_counts
+        description: Hourly pedestrian counts. Hive date folders are ignored; sensing_date is inside the file.
+        meta:
+          external_location: "read_parquet('{{ var('raw_root') }}/pedestrian_hourly_counts/**/*.parquet', hive_partitioning=false, union_by_name=true)"
+      - name: pedestrian_sensor_locations
+        description: Sensor location snapshot.
+        meta:
+          external_location: "read_parquet('{{ var('raw_root') }}/pedestrian_sensor_locations/*.parquet', hive_partitioning=false, union_by_name=true)"
+      - name: open_meteo_archive
+        description: Citywide hourly weather at the verified CBD point.
+        meta:
+          external_location: "read_parquet('{{ var('raw_root') }}/open_meteo_archive/**/*.parquet', hive_partitioning=false, union_by_name=true)"
+      - name: vic_public_holidays
+        description: VIC public holidays from the holidays package.
+        meta:
+          external_location: "read_parquet('{{ var('raw_root') }}/vic_public_holidays/**/*.parquet', hive_partitioning=false, union_by_name=true)"
+      - name: vic_school_terms
+        description: Hand-maintained school terms (ADR-006).
+        meta:
+          external_location: "read_parquet('{{ var('raw_root') }}/vic_school_terms/**/*.parquet', hive_partitioning=false, union_by_name=true)"
+      - name: major_events
+        description: Hand-maintained major events (ADR-006).
+        meta:
+          external_location: "read_parquet('{{ var('raw_root') }}/major_events/**/*.parquet', hive_partitioning=false, union_by_name=true)"

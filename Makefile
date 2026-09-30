@@ -8,7 +8,8 @@ ingest:
 	uv run python -m melbourne_footfall.ingest --start 2026-08-01 --end 2026-08-02
 
 build:
-	@echo not implemented: build
+	uv run python -c "from pathlib import Path; src, dst = Path('dbt/profiles.yml.example'), Path('dbt/profiles.yml'); dst.write_text(src.read_text(encoding='utf-8'), encoding='utf-8') if not dst.exists() else None"
+	uv run dbt build --project-dir dbt --profiles-dir dbt
 
 features:
 	@echo not implemented: features

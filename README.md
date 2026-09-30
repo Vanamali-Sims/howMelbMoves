@@ -82,16 +82,10 @@ make test
 make lint
 ```
 
-Copy `dbt/profiles.yml.example` to `dbt/profiles.yml` before running dbt.
-`dbt parse` should succeed on the empty model tree:
-
-```bash
-cp dbt/profiles.yml.example dbt/profiles.yml
-uv run dbt parse --project-dir dbt --profiles-dir dbt
-```
-
-`make ingest`, `make build`, `make features`, `make train`, `make evaluate`,
-and `make export` are stubs until those stages are implemented.
+`make build` copies `dbt/profiles.yml` if needed and runs the location-hour
+dbt models (ADR-009). Run it from the repo root so `data/raw` resolves.
+`make features`, `make train`, `make evaluate`, and `make export` are still
+stubs.
 
 ## Repository layout
 

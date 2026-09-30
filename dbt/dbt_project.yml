@@ -14,6 +14,10 @@ clean-targets:
   - target
   - dbt_packages
 
+# Relative to the repo root. `make build` runs dbt with that working directory.
+vars:
+  raw_root: "data/raw"
+
 models:
   melbourne_footfall:
     staging:
