@@ -82,8 +82,9 @@ make test
 make lint
 ```
 
-`make build` copies `dbt/profiles.yml` if needed and runs the location-hour
-dbt models (ADR-009). Run it from the repo root so `data/raw` resolves.
+`make build` copies `dbt/profiles.yml` if needed and runs dbt through
+`mart_precinct_hour` (location-hour join, then CLUE precinct rollup). Run it
+from the repo root so `data/raw` resolves.
 `make features`, `make train`, `make evaluate`, and `make export` are still
 stubs.
 
