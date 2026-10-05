@@ -3,10 +3,12 @@
 Forecast hourly pedestrian volume in the Melbourne CBD and compare recent
 footfall to a seasonal-naive expectation, by CLUE precinct and hour.
 
-City of Melbourne sensor counts are joined to weather, calendar, and land-use
-data in dbt. Python builds features, fits a 24-hour seasonal naive baseline
-then LightGBM, scores rolling-origin MASE, and exports Parquet plus CSV for
-Tableau Public.
+City of Melbourne open data (pedestrian sensors, weather, calendar, CLUE land
+use) lands as immutable Parquet, is modeled in **dbt** on **DuckDB**, then
+passed through a small **Python** layer for features, a 24-hour seasonal naive
+baseline, **LightGBM**, rolling-origin **MASE**, and a **Tableau**-ready export.
+The repo is meant to be rerunnable from a clean checkout with `make` targets and
+documented decisions in `docs/`.
 
 ## Problem
 
