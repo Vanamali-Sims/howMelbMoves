@@ -1,11 +1,12 @@
 # melbourne-footfall
 
-Forecast hourly pedestrian volume in the Melbourne CBD and measure how each
-precinct recovered after COVID-19 lockdowns.
+Forecast hourly pedestrian volume in the Melbourne CBD and compare recent
+footfall to a seasonal-naive expectation, by CLUE precinct and hour.
 
-This repository is the reproducible pipeline behind that forecast: City of
-Melbourne open data joined to weather, calendar, and land-use data, a baseline
-then a LightGBM model, and a Tableau Public dashboard.
+City of Melbourne sensor counts are joined to weather, calendar, and land-use
+data in dbt. Python builds features, fits a 24-hour seasonal naive baseline
+then LightGBM, scores rolling-origin MASE, and exports Parquet plus CSV for
+Tableau Public.
 
 ## Problem
 
@@ -16,20 +17,34 @@ peaks and streets that did not.
 
 The question this project answers:
 
-> For each CBD precinct and hour, what footfall should we expect, and how does
-> recent volume compare with a pre-lockdown baseline?
+> For each CBD precinct and hour, what footfall should we expect, and how far
+> is recent volume from that expectation?
 
-## Decision it supports
+A **pre-lockdown comparison** is a stated goal but is **not in the pipeline yet**
+because the live hourly API starts at 2024-09-06, not 2009 (see
+`docs/decisions.md`).
 
-The output is meant for precinct-level operational and investment choices:
-where street activation or retail support is still justified, where evening
-versus lunchtime patterns have shifted, and whether a short-term dip is in
-line with weather and the calendar or is an outlier.
+## What is built
 
-A hiring manager can rerun the pipeline from this repo; a non-technical
-stakeholder is the Tableau Public audience.
+| Stage | Command | Output |
+| --- | --- | --- |
+| Ingest | `make ingest` / `make ingest-full` | Immutable Parquet under `data/raw/` |
+| Quality | (runs at end of ingest) | JSON summary on stdout |
+| Warehouse | `make build` | DuckDB + dbt views/table `mart_precinct_hour` |
+| Features | `make features` | `data/staged/precinct_hour_features.parquet` |
+| Train | `make train` | `data/staged/precinct_hour_predictions.parquet`, `data/staged/models/lightgbm.txt` |
+| Evaluate | `make evaluate` | `data/staged/metrics.json` (rolling-origin MASE) |
+| Export | `make export` | `tableau_precinct_hour.parquet` and `.csv` under `data/staged/export/` |
+| All ML + dbt | `make pipeline` | Runs `build` through `export` |
 
-## Planned architecture
+**dbt models:** staging (counts, sensors, weather, calendar, CLUE centroids),
+`int_location_hour`, `int_sensor_block_map` (nearest block → `clue_small_area`),
+`mart_precinct_hour`.
+
+**Modelling (ADR-011):** baseline = same precinct, same hour, 24 wall-clock
+hours earlier (`lag_24h`). MASE uses train-set seasonal scale per precinct.
+
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -41,18 +56,18 @@ flowchart LR
   end
 
   subgraph ingest [Python ingest]
-    Raw["data/raw Parquet\nimmutable"]
+    Raw["data/raw Parquet"]
   end
 
   subgraph dbtLayer [dbt-duckdb]
     Stg[staging]
     Int[intermediate]
-    Marts[marts]
+    Marts[mart_precinct_hour]
     DB[(DuckDB)]
   end
 
   subgraph ml [Forecasting]
-    Base[Seasonal naive baseline]
+    Base[Seasonal naive 24h]
     LGBM[LightGBM]
   end
 
@@ -68,63 +83,122 @@ flowchart LR
   LGBM --> Dash
 ```
 
-Ingest writes Parquet. dbt owns joins and grains. Python fits models only after
-a seasonal-naive baseline, evaluated with MASE on a rolling-origin split.
-
 ## Quickstart
 
-Requires Python 3.12 and [uv](https://docs.astral.sh/uv/).
+Requires Python 3.12 and [uv](https://docs.astral.sh/uv/). Run commands from the
+repo root.
 
 ```bash
 uv sync
+make setup
 make test
 make lint
 ```
 
-Smoke run from the repo root (two days of counts plus warehouse build):
+**Smoke test (two days of counts, minutes):**
 
 ```bash
 make ingest
 make pipeline
 ```
 
-`make pipeline` runs `build`, `features`, `train`, `evaluate`, and `export`.
-For the full verified pedestrian date range, run `make ingest-full` first (slow).
+**Full pedestrian history (slow; needs network):**
 
-Outputs land under `data/staged/` (features, predictions, metrics, Tableau
-Parquet). DuckDB lives at `data/warehouse/melbourne_footfall.duckdb`.
+```bash
+make ingest-full
+make pipeline
+```
+
+Optional faster full ingest (skips the 413k-row CLUE address table; block tables
+still load):
+
+```bash
+uv run python -m melbourne_footfall.ingest --start 2024-09-06 --end 2026-09-05 --skip-clue-address
+make pipeline
+```
+
+On Windows, if `make` is missing, run the same targets via `uv run` (see
+`Makefile`) or install Make.
+
+### After `make pipeline`
+
+| File | Use |
+| --- | --- |
+| `data/staged/metrics.json` | Rolling-origin `mase_baseline`, `mase_lgbm` |
+| `data/staged/export/tableau_precinct_hour.parquet` | Canonical export (Parquet) |
+| `data/staged/export/tableau_precinct_hour.csv` | **Tableau Public:** Connect → Text file |
+| `data/warehouse/melbourne_footfall.duckdb` | Local warehouse (gitignored) |
+
+Copy `dbt/profiles.yml.example` to `dbt/profiles.yml` if `make setup` was not
+run. Override paths with `.env` from `.env.example`.
+
+## Tableau Public
+
+`make export` (included in `make pipeline`) writes **both** Parquet and CSV.
+Tableau Public does not open Parquet via **Text file**; use the CSV:
+
+`data/staged/export/tableau_precinct_hour.csv`
+
+Connect: **Text file** → select that path → comma delimiter, header row on.
+
+Each row is **precinct × date × hour** with `pedestriancount`, `baseline_pred`,
+`lgbm_pred`, weather, calendar flags, and pooled MASE columns. Build the
+workbook, then **Server → Publish to Tableau Public**.
 
 ## Repository layout
 
 ```
 howMelbMoves/
-├── AGENTS.md                 # conventions for later sessions
-├── config/sources.yml        # source catalogue; empty until verified
-├── data/                     # raw, staged, warehouse; contents gitignored
-├── dbt/                      # dbt-duckdb project
-├── docs/                     # dictionary, quality notes, ADRs
-├── notebooks/                # exploration only
+├── config/sources.yml        # verified source catalogue
+├── data/raw|staged|warehouse # gitignored data
+├── dbt/models/               # staging, intermediate, marts
+├── docs/                     # dictionary, ADRs, quality notes (local)
 ├── src/melbourne_footfall/   # ingest, quality, features, models, export
 └── tests/
 ```
 
 ## Data sources
 
-Verified against live APIs on 2026-09-06. Catalogue, ids, columns, and
-discrepancies are in `docs/source_verification.md` and `docs/data_dictionary.md`.
-`config/sources.yml` holds the confirmed catalogue. The hourly pedestrian
-table currently starts at 2024-09-06, not 2009 — see open questions in
-`docs/decisions.md`.
+Verified against live APIs on 2026-09-06. Details in `docs/source_verification.md`
+and `docs/data_dictionary.md`. Hourly counts in the catalogue span
+**2024-09-06 to 2026-09-05** unless the publisher extends the API.
+
+School terms and major events come from hand-maintained CSVs in `config/` (not
+live APIs).
 
 ## Results
 
-After `make pipeline`, read `data/staged/metrics.json` for rolling-origin MASE
-and publish `data/staged/export/tableau_precinct_hour.parquet` to Tableau
-Public. Pre-lockdown recovery ratios are not computed until that baseline
-period is verified.
+Evaluated on a local run: **2026-06-04 to 2026-09-01** (18,901 precinct-hour
+rows, 9 CLUE small areas, 89 rolling-origin folds). Metrics from
+`data/staged/metrics.json`.
+
+| Metric | Value |
+| --- | --- |
+| Rolling-origin MASE (24h seasonal naive baseline) | **0.98** |
+| Rolling-origin MASE (LightGBM) | **0.87** |
+
+LightGBM beats the baseline on pooled MASE over this window (lower is better).
+This compares recent footfall to a **same-hour-yesterday** expectation, not to
+a pre-lockdown period.
+
+**Tableau Public:** _Add your published workbook URL here after you publish._
+
+Export files: `data/staged/export/tableau_precinct_hour.parquet` and
+`.csv` (use CSV in Tableau Public).
+
+## What's next
+
+1. **Publish Tableau Public** using `tableau_precinct_hour.csv` from `make pipeline`.
+2. Paste the Tableau URL into **Results** above and commit the README.
+3. **Pre-lockdown baseline** — only after a verified hourly series before
+   2024-09-06 exists; add a dbt column or export field, do not guess.
+4. **Precinct mapping** — replace nearest-block assignment (ADR-010) if CoM
+   publishes a sensor → area table.
+5. **Calendar CSVs** — confirm school terms and events against official sources.
+6. **Push** `main` to `origin` when the dashboard link is in the README.
 
 ## Limitations
 
-Documented in `docs/decisions.md` and `docs/data_quality_notes.md`. Do not
-treat figures as final until evaluated on a history longer than the smoke
-extract.
+- Precinct labels come from nearest 2024 CLUE block centroids, not a publisher join key.
+- Pre-lockdown recovery is out of scope until historical hourly data is verified.
+- See `docs/decisions.md` and `docs/data_quality_notes.md` for open questions.

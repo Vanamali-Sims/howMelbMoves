@@ -42,18 +42,17 @@ def mase(
     return float(np.mean(np.abs(y_true[mask] - y_pred[mask])) / scale)
 
 
-def panel_mase(
+def _mase_components_by_series(
     test: pd.DataFrame,
     train: pd.DataFrame,
     *,
     y_col: str,
     pred_col: str,
-    series_col: str = "precinct",
-    seasonality: int = DEFAULT_SEASONALITY,
-) -> float:
-    """Pooled MASE on test rows with per-series scale from the training sample."""
-    numer = 0.0
-    denom = 0.0
+    series_col: str,
+    seasonality: int,
+) -> dict[str, tuple[float, float]]:
+    """Per-series (numerator, denominator) MASE components from the train scale."""
+    components: dict[str, tuple[float, float]] = {}
     for series, test_group in test.groupby(series_col):
         train_group = train.loc[train[series_col] == series]
         if train_group.empty:
@@ -69,8 +68,57 @@ def panel_mase(
         mask = np.isfinite(y) & np.isfinite(p)
         if not mask.any() or not np.isfinite(scale):
             continue
-        numer += float(np.sum(np.abs(y[mask] - p[mask])))
-        denom += scale * float(mask.sum())
+        numer = float(np.sum(np.abs(y[mask] - p[mask])))
+        denom = scale * float(mask.sum())
+        if denom == 0.0:
+            continue
+        components[series] = (numer, denom)
+    return components
+
+
+def panel_mase(
+    test: pd.DataFrame,
+    train: pd.DataFrame,
+    *,
+    y_col: str,
+    pred_col: str,
+    series_col: str = "precinct",
+    seasonality: int = DEFAULT_SEASONALITY,
+) -> float:
+    """Pooled MASE on test rows with per-series scale from the training sample."""
+    components = _mase_components_by_series(
+        test,
+        train,
+        y_col=y_col,
+        pred_col=pred_col,
+        series_col=series_col,
+        seasonality=seasonality,
+    )
+    if not components:
+        return float("nan")
+    numer = sum(n for n, _ in components.values())
+    denom = sum(d for _, d in components.values())
     if denom == 0.0:
         return float("nan")
     return numer / denom
+
+
+def panel_mase_by_series(
+    test: pd.DataFrame,
+    train: pd.DataFrame,
+    *,
+    y_col: str,
+    pred_col: str,
+    series_col: str = "precinct",
+    seasonality: int = DEFAULT_SEASONALITY,
+) -> dict[str, float]:
+    """MASE per series (e.g. per precinct), each scaled by its own train sample."""
+    components = _mase_components_by_series(
+        test,
+        train,
+        y_col=y_col,
+        pred_col=pred_col,
+        series_col=series_col,
+        seasonality=seasonality,
+    )
+    return {series: numer / denom for series, (numer, denom) in components.items()}

@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from melbourne_footfall.features.build import SEASONALITY_HOURS
-from melbourne_footfall.models.metrics import panel_mase
+from melbourne_footfall.models.metrics import panel_mase, panel_mase_by_series
 from melbourne_footfall.models.train import (
     CATEGORICAL_FEATURES,
     _coerce_flags,
@@ -148,6 +148,20 @@ def evaluate_rolling_origin(
                 pred_col="lgbm_pred",
                 seasonality=SEASONALITY_HOURS,
             ),
+            "mase_baseline_by_precinct": panel_mase_by_series(
+                pooled_test.dropna(subset=["baseline_pred"]),
+                pooled_train,
+                y_col="pedestriancount",
+                pred_col="baseline_pred",
+                seasonality=SEASONALITY_HOURS,
+            ),
+            "mase_lgbm_by_precinct": panel_mase_by_series(
+                pooled_test.dropna(subset=["lgbm_pred"]),
+                pooled_train,
+                y_col="pedestriancount",
+                pred_col="lgbm_pred",
+                seasonality=SEASONALITY_HOURS,
+            ),
         }
     else:
         summary = {
@@ -155,6 +169,8 @@ def evaluate_rolling_origin(
             "folds": folds,
             "mase_baseline": None,
             "mase_lgbm": None,
+            "mase_baseline_by_precinct": {},
+            "mase_lgbm_by_precinct": {},
             "note": (
                 "Need at least two distinct sensing_date values "
                 "for rolling-origin evaluation."

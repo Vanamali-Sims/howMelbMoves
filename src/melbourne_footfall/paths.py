@@ -48,5 +48,10 @@ def tableau_export_path() -> Path:
     return export_dir() / "tableau_precinct_hour.parquet"
 
 
+def tableau_export_csv_path() -> Path:
+    """Tableau Public connects via Text file; Parquet is the pipeline canonical copy."""
+    return export_dir() / "tableau_precinct_hour.csv"
+
+
 def lightgbm_model_path() -> Path:
     return models_dir() / "lightgbm.txt"

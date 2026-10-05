@@ -13,11 +13,39 @@ import pyarrow.parquet as pq
 from melbourne_footfall.paths import (
     metrics_path,
     predictions_path,
+    tableau_export_csv_path,
     tableau_export_path,
 )
 from melbourne_footfall.warehouse import read_precinct_hour
 
 logger = logging.getLogger("melbourne_footfall.export.tableau")
+
+
+def _add_precinct_profile(mart: pd.DataFrame) -> pd.DataFrame:
+    """Precompute the precinct comparison fields so Tableau only has to display them.
+
+    - `precinct_hourly_index`: that precinct-hour's mean pedestriancount divided by
+      the precinct's own overall mean (1.0 = typical for that precinct). Lets a
+      precinct x hour heatmap compare shapes across precincts whose raw volumes
+      span two orders of magnitude (CBD vs residential fringe).
+    - `precinct_rank`: dense rank of precincts by mean pedestriancount, 1 = busiest.
+      Drives small-multiple ordering without a Tableau calculated field.
+    """
+    out = mart.copy()
+    precinct_mean = out.groupby("precinct")["pedestriancount"].transform("mean")
+    hour_mean = out.groupby(["precinct", "hourday"])["pedestriancount"].transform(
+        "mean"
+    )
+    out["precinct_hourly_index"] = hour_mean / precinct_mean.mask(precinct_mean == 0)
+
+    rank_by_precinct = (
+        out.groupby("precinct")["pedestriancount"]
+        .mean()
+        .rank(ascending=False, method="dense")
+        .astype("Int64")
+    )
+    out["precinct_rank"] = out["precinct"].map(rank_by_precinct)
+    return out
 
 
 def build_tableau_dataset(
@@ -47,13 +75,30 @@ def build_tableau_dataset(
         metrics = json.loads(metrics_file.read_text(encoding="utf-8"))
         mart["mase_baseline"] = metrics.get("mase_baseline")
         mart["mase_lgbm"] = metrics.get("mase_lgbm")
+        mart["mase_baseline_precinct"] = mart["precinct"].map(
+            metrics.get("mase_baseline_by_precinct") or {}
+        )
+        mart["mase_lgbm_precinct"] = mart["precinct"].map(
+            metrics.get("mase_lgbm_by_precinct") or {}
+        )
     else:
         mart["mase_baseline"] = pd.NA
         mart["mase_lgbm"] = pd.NA
+        mart["mase_baseline_precinct"] = pd.NA
+        mart["mase_lgbm_precinct"] = pd.NA
+
+    if "baseline_pred" in mart.columns:
+        mart["baseline_error"] = mart["pedestriancount"] - mart["baseline_pred"]
+    if "lgbm_pred" in mart.columns:
+        mart["lgbm_error"] = mart["pedestriancount"] - mart["lgbm_pred"]
+
+    mart = _add_precinct_profile(mart)
 
     path = dest or tableau_export_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     pq.write_table(pa.Table.from_pandas(mart, preserve_index=False), path)
+    csv_path = tableau_export_csv_path()
+    mart.to_csv(csv_path, index=False)
     return mart
 
 
@@ -65,7 +110,8 @@ def main() -> int:
     frame = build_tableau_dataset()
     payload = {
         "rows": int(len(frame)),
-        "path": str(tableau_export_path()),
+        "parquet": str(tableau_export_path()),
+        "csv": str(tableau_export_csv_path()),
     }
     print(json.dumps({"export": payload}, indent=2))
     return 0
