@@ -1,0 +1,57 @@
+name: daily-pipeline
+
+on:
+  schedule:
+    - cron: "30 19 * * *" # 06:30 Melbourne (AEDT). Cron is UTC.
+  workflow_dispatch: # lets you trigger it by hand
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - run: uv sync --locked --all-groups
+
+      - name: Ingest latest data
+        run: make ingest-daily
+
+      # dbt runs from the repo root: profiles.yml and vars use paths relative to it.
+      - name: dbt freshness, build and test
+        run: |
+          cp -n dbt/profiles.yml.example dbt/profiles.yml
+          uv run dbt source freshness --project-dir dbt --profiles-dir dbt
+          uv run dbt build --project-dir dbt --profiles-dir dbt
+
+      - name: Keep run record
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-run-${{ github.run_id }}
+          path: |
+            dbt/target/run_results.json
+            dbt/target/sources.json
+          retention-days: 90
+
+      - name: Open issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo,
+              title: `Daily pipeline failed ${new Date().toISOString().slice(0,10)}`,
+              body: `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              labels: ['pipeline-failure']
+            })

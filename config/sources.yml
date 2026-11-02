@@ -14,10 +14,10 @@ sources:
       - pedestriancount
       - sensor_name
       - location
-    # Live min/max sensing_date, not the portal's "since 2009" claim.
+    # Live min sensing_date, not the portal's "since 2009" claim. No end: the
+    # feed grows daily and the daily pipeline ingests up to today.
     date_range:
       start: 2024-09-06
-      end: 2026-09-05
     verified: true
 
   - name: pedestrian_sensor_locations
@@ -137,10 +137,10 @@ sources:
       - rain
       - wind_speed_10m
       - cloud_cover
-    # Allowed range from the API 400 body on 2026-09-06. End will move.
+    # Allowed start from the API 400 body. The API rejects end dates after
+    # today (UTC) itself, so the cap is not duplicated here.
     date_range:
       start: 1940-01-01
-      end: 2026-09-06
     verified: true
 
   - name: vic_public_holidays

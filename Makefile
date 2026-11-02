@@ -1,4 +1,4 @@
-.PHONY: setup ingest ingest-full build features train evaluate export pipeline test lint clean
+.PHONY: setup ingest ingest-daily ingest-full build features train evaluate export pipeline test lint clean
 
 setup:
 	uv sync
@@ -6,6 +6,9 @@ setup:
 
 ingest:
 	uv run python -m melbourne_footfall.ingest --start 2026-08-01 --end 2026-08-02
+
+ingest-daily:
+	uv run python -m melbourne_footfall.ingest --lookback-days 14
 
 ingest-full:
 	uv run python -m melbourne_footfall.ingest --start 2024-09-06 --end 2026-09-05

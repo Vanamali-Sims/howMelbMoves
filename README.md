@@ -1,5 +1,7 @@
 # melbourne-footfall
 
+![daily-pipeline](https://github.com/Vanamali-Sims/howMelbMoves/actions/workflows/daily-pipeline.yml/badge.svg)
+
 Forecast hourly pedestrian volume in the Melbourne CBD and compare recent
 footfall to a seasonal-naive expectation, by CLUE precinct and hour.
 

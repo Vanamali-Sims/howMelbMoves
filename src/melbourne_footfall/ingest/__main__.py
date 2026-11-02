@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 from melbourne_footfall.ingest.calendar import (
@@ -44,6 +44,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--start", type=_parse_date, default=None)
     parser.add_argument("--end", type=_parse_date, default=None)
+    parser.add_argument(
+        "--lookback-days",
+        type=int,
+        default=None,
+        help="Ingest the trailing N days up to today (UTC). Overrides --start/--end.",
+    )
     parser.add_argument("--raw-dir", type=Path, default=None)
     parser.add_argument(
         "--skip-clue-address",
@@ -51,6 +57,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Skip the 413k-row address table (still ingest the two block tables).",
     )
     args = parser.parse_args(argv)
+    if args.lookback_days is not None:
+        if args.lookback_days < 1:
+            parser.error("--lookback-days must be >= 1")
+        args.end = datetime.now(tz=UTC).date()
+        args.start = args.end - timedelta(days=args.lookback_days)
 
     results: list[IngestResult] = []
     results.append(

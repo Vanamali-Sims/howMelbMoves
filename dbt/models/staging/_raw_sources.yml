@@ -6,6 +6,10 @@ sources:
     tables:
       - name: pedestrian_hourly_counts
         description: Hourly pedestrian counts. Hive date folders are ignored; sensing_date is inside the file.
+        loaded_at_field: observed_at # tz-aware hour of the reading (not ingest time)
+        freshness:
+          warn_after: {count: 36, period: hour}
+          error_after: {count: 72, period: hour}
         meta:
           external_location: "read_parquet('{{ var('raw_root') }}/pedestrian_hourly_counts/**/*.parquet', hive_partitioning=false, union_by_name=true)"
       - name: pedestrian_sensor_locations
