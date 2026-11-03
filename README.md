@@ -185,7 +185,7 @@ LightGBM beats the baseline on pooled MASE over this window (lower is better).
 This compares recent footfall to a **same-hour-yesterday** expectation, not to
 a pre-lockdown period.
 
-**Tableau Public:** _Add your published workbook URL here after you publish._
+**Tableau Public:** https://public.tableau.com/app/profile/sai.vanamali.simhambhatla4623/viz/MelbourneFootfall/Dashboard3
 
 Export files: `data/staged/export/tableau_precinct_hour.parquet` and
 `.csv` (use CSV in Tableau Public).
